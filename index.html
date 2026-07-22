@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Naufal ChatBot</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="chatbot-header">
+            <div class="header-content">
+                <h1>🤖 Naufal ChatBot</h1>
+                <p>Asisten AI siap membantu Anda</p>
+            </div>
+        </div>
+
+        <div id="chat" class="chat-box">
+            <div class="bot welcome-message">
+                Halo 👋 Selamat datang di Naufal Chat-Bot. Ketik "menu" untuk melihat fitur yang tersedia!
+            </div>
+        </div>
+
+        <div class="input-area">
+            <input 
+                type="text" 
+                id="text" 
+                class="input-field" 
+                placeholder="Ketik pesan Anda di sini..."
+                autocomplete="off"
+            >
+            <button onclick="send()" class="send-btn">Kirim</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
