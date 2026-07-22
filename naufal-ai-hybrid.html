@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Naufal AI - ChatGPT & Gemini Hybrid</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --primary-dark: #764ba2;
+            --secondary: #00D4FF;
+            --warning: #ff9500;
+            --success: #34c759;
+            --error: #ff3b30;
+            --text: #333;
+            --bg-light: #f7f7f7;
+            --bg-white: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 900px;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            max-height: 90vh;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            background: var(--bg-white);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+        }
+
+        .sidebar-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .ai-mode {
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            font-size: 13px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .ai-mode.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary-dark);
+        }
+
+        .ai-mode:hover {
+            transform: translateX(5px);
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .feature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .feature-item {
+            padding: 8px;
+            border-left: 3px solid var(--secondary);
+            padding-left: 12px;
+        }
+
+        .clear-chat {
+            padding: 10px;
+            background: var(--error);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .clear-chat:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+
+        /* ===== CHAT CONTAINER ===== */
+        .chat-container {
+            background: var(--bg-white);
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 20px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .header-subtitle {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .chat-box {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: var(--bg-light);
+        }
+
+        .chat-box::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-box::-webkit-scrollbar-track {
+            background: #e0e0e0;
+        }
+
+        .chat-box::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+
+        .message-wrapper {
+            display: flex;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 80%;
+            word-wrap: break-word;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+            text-align: left;
+        }
+
+        .bot-message {
+            background: white;
+            color: var(--text);
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 4px;
+            margin-right: auto;
+            white-space: pre-wrap;
+        }
+
+        .bot-message.chatgpt {
+            border-left: 4px solid #10a37f;
+        }
+
+        .bot-message.gemini {
+            border-left: 4px solid #4285f4;
+        }
+
+        .bot-header {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary);
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                opacity: 0.5;
+                transform: translateY(0);
+            }
+            30% {
+                opacity: 1;
+                transform: translateY(-10px);
+            }
+        }
+
+        /* ===== INPUT AREA ===== */
+        .input-area {
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .input-field {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px 15px;
+            font-size: 14px;
+            resize: none;
+            max-height: 100px;
+            font-family: inherit;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        .input-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            background: var(--bg-light);
+            border: none;
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: 0.3s;
+        }
+
+        .icon-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* ===== MODAL ===== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .modal-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .modal-btn.primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .modal-btn.secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                max-height: 100vh;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .message {
+                max-width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div>
+                <div class="sidebar-title">🤖 AI Mode</div>
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+                    <button class="ai-mode active" onclick="switchMode('hybrid')">🔄 Hybrid Mode</button>
+                    <button class="ai-mode" onclick="switchMode('chatgpt')">🧠 ChatGPT Mode</button>
+                    <button class="ai-mode" onclick="switchMode('gemini')">✨ Gemini Mode</button>
+                </div>
+            </div>
+
+            <div>
+                <div class="sidebar-title">✨ Features</div>
+                <div class="feature-list">
+                    <div class="feature-item">💬 Multi-turn Chat</div>
+                    <div class="feature-item">🧠 Context Memory</div>
+                    <div class="feature-item">📝 Code Analysis</div>
+                    <div class="feature-item">✍️ Writing Assistant</div>
+                    <div class="feature-item">🔍 Search & Lookup</div>
+                    <div class="feature-item">🎨 Creative Mode</div>
+                    <div class="feature-item">🐛 Problem Solver</div>
+                    <div class="feature-item">📊 Data Analysis</div>
+                </div>
+            </div>
+
+            <button class="clear-chat" onclick="clearChat()">🗑️ Clear Chat</button>
+        </div>
+
+        <!-- CHAT CONTAINER -->
+        <div class="chat-container">
+            <div class="chat-header">
+                <div class="header-title">🤖 Naufal AI - Hybrid Assistant</div>
+                <div class="header-subtitle" id="modeSubtitle">Powered by ChatGPT & Gemini Technology</div>
+            </div>
+
+            <div id="chat" class="chat-box">
+                <div class="message-wrapper">
+                    <div class="message bot-message" style="margin-right: auto;">
+                        👋 Selamat datang! Saya Naufal AI, asisten hybrid yang menggabungkan kekuatan ChatGPT dan Google Gemini. 
+                        
+Ketik pertanyaan atau perintah apapun dan saya akan membantu dengan konteks penuh dan memory percakapan. Coba tanya tentang coding, menulis, analisis, atau apapun!
+
+💡 Tips: Gunakan sidebar untuk switch AI mode
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <textarea 
+                        id="text" 
+                        class="input-field" 
+                        placeholder="Ketik pesan Anda di sini... (Shift+Enter untuk baris baru)" 
+                        rows="1"
+                    ></textarea>
+                    <div class="input-actions">
+                        <button class="icon-btn" onclick="showImageModal()" title="Upload Gambar">🖼️</button>
+                        <button class="icon-btn" onclick="showCodeModal()" title="Insert Code">💻</button>
+                    </div>
+                </div>
+                <button class="send-btn" onclick="send()">↩️ Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <div id="imageModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">📸 Analisis Gambar</div>
+            <input type="text" id="imageUrl" class="modal-input" placeholder="Paste URL gambar atau deskripsi">
+            <div class="modal-buttons">
+                <button class="modal-btn secondary" onclick="closeImageModal()">Batal</button>
+                <button class="modal-btn primary" onclick="analyzeImage()">Analisis</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="codeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">💻 Insert Code</div>
+            <textarea id="codeInput" class="modal-input" placeholder="Paste code Anda" style="height: 200px; resize: vertical;"></textarea>
+            <select id="codeLanguage" class="modal-input" style="margin-bottom: 15px;">
+                <option value="javascript">JavaScript</option>
+                <option value="python">Python</option>
+                <option value="html">HTML</option>
+                <option value="css">CSS</option>
+                <option value="java">Java</option>
+                <option value="cpp">C++</option>
+                <option value="sql">SQL</option>
+            </select>
+            <div class="modal-buttons">
+                <button class="modal-btn secondary" onclick="closeCodeModal()">Batal</button>
+                <button class="modal-btn primary" onclick="insertCode()">Insert</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== STATE MANAGEMENT =====
+        let currentMode = 'hybrid';
+        let conversationHistory = [];
+        const MAX_HISTORY = 10;
+
+        // ===== KNOWLEDGE BASE =====
+        const knowledgeBase = {
+            // Programming
+            javascript: "JavaScript adalah bahasa pemrograman yang powerful untuk web development, game, dan aplikasi. Fitur: async/await, destructuring, arrow functions.",
+            python: "Python adalah bahasa yang versatile dengan syntax yang mudah dipelajari. Popular untuk data science, AI, automation, dan web development.",
+            html: "HTML adalah markup language untuk membuat struktur halaman web. Kombinasikan dengan CSS untuk styling dan JavaScript untuk interaktivitas.",
+            css: "CSS adalah language untuk styling dan layout halaman web. Modern CSS: Grid, Flexbox, CSS Variables, dan Animations.",
+            
+            // Soft Skills
+            productivity: "Produktivitas meningkat dengan: time blocking, prioritization, automation, dan break yang teratur. Gunakan tools seperti Pomodoro Technique.",
+            writing: "Tips menulis efektif: mulai dengan outline, gunakan simple language, edit berkali-kali, dan baca kembali dengan fresh mind.",
+            presentation: "Presentasi sukses: persiapan matang, design slide minimal, praktik berulang, maintain eye contact, dan percaya diri.",
+            
+            // Data & Analysis
+            data: "Data Analysis adalah proses mengubah data mentah menjadi insights. Tools populer: Excel, SQL, Python (Pandas), R.",
+            database: "Database menyimpan data terstruktur. Tipe: Relational (SQL), NoSQL (MongoDB), dan Graph Databases.",
+            statistics: "Statistik membantu memahami data. Konsep: mean, median, variance, correlation, dan hypothesis testing.",
+            
+            // AI & ML
+            ai: "Artificial Intelligence simulasi intelligence dalam komputer. Subfields: machine learning, NLP, computer vision, robotics.",
+            ml: "Machine Learning adalah branch AI yang fokus pada algoritma belajar dari data. Types: supervised, unsupervised, reinforcement learning.",
+            nlp: "Natural Language Processing memproses dan menganalisis language manusia. Applications: chatbot, translation, sentiment analysis.",
+        };
+
+        // ===== AI RESPONSES LOGIC =====
+        const aiResponses = {
+            hybrid: function(input) {
+                const normalizedInput = input.toLowerCase().trim();
+                
+                // Code-related queries
+                if (normalizedInput.includes('code') || normalizedInput.includes('coding') || normalizedInput.includes('program')) {
+                    return {
+                        text: "💻 Untuk coding questions, saya bisa membantu dengan:\n\n• Explain code & logic\n• Debug errors\n• Optimize performance\n• Best practices\n• Design patterns\n\nCoba tanya tentang JavaScript, Python, atau bahasa lain apapun!",
+                        mode: "ChatGPT"
+                    };
+                }
+                
+                // Writing assistance
+                if (normalizedInput.includes('tulis') || normalizedInput.includes('menulis') || normalizedInput.includes('artikel')) {
+                    return {
+                        text: "✍️ Writing Assistant Mode:\n\n📝 Saya bisa membantu:\n• Brainstorming ideas\n• Structure & outline\n• Grammar & style\n• Content optimization\n• SEO friendly content\n\nBagian mana yang ingin Anda kerjakan?",
+                        mode: "Gemini"
+                    };
+                }
+                
+                // Data & Analysis
+                if (normalizedInput.includes('data') || normalizedInput.includes('analisis') || normalizedInput.includes('statistik')) {
+                    return {
+                        text: "📊 Data Analysis Mode:\n\n🔍 Kemampuan:\n• Interpret data patterns\n• Statistical analysis\n• Visualization suggestions\n• Database queries\n• Data cleaning tips\n\nBagikan data atau pertanyaan Anda!",
+                        mode: "Gemini"
+                    };
+                }
+                
+                // General questions
+                return {
+                    text: "🤖 Hybrid AI Response:\n\nSaya menggabungkan kekuatan ChatGPT untuk reasoning & Gemini untuk creative solutions.\n\nAda yang bisa saya bantu? Tanya tentang:\n• 💻 Coding & Development\n• ✍️ Writing & Content\n• 📊 Data & Analysis\n• 🧠 Problem Solving\n• 🎨 Creative Ideas",
+                    mode: "Hybrid"
+                };
+            },
+            
+            chatgpt: function(input) {
+                const normalizedInput = input.toLowerCase().trim();
+                
+                if (normalizedInput.includes('error') || normalizedInput.includes('bug') || normalizedInput.includes('debug')) {
+                    return {
+                        text: "🐛 ChatGPT Debugging Mode:\n\nLangkah debugging:\n1. Identify the error message\n2. Check recent code changes\n3. Review variable values\n4. Test in isolation\n5. Search for similar issues\n\nBagikan error message-nya!",
+                        mode: "ChatGPT"
+                    };
+                }
+                
+                if (normalizedInput.includes('explain') || normalizedInput.includes('bagaimana') || normalizedInput.includes('apa itu')) {
+                    return {
+                        text: "📚 ChatGPT Explanation Mode:\n\nSaya akan menjelaskan dengan:\n• Simple language\n• Real-world examples\n• Step-by-step breakdown\n• Visual analogy\n\nApa yang ingin dipahami?",
+                        mode: "ChatGPT"
+                    };
+                }
+                
+                return {
+                    text: "🧠 ChatGPT Mode Aktif:\n\nSaya fokus pada:\n✓ Deep reasoning\n✓ Logical analysis\n✓ Code debugging\n✓ Problem solving\n✓ Educational explanations\n\nTanya apa saja!",
+                    mode: "ChatGPT"
+                };
+            },
+            
+            gemini: function(input) {
+                const normalizedInput = input.toLowerCase().trim();
+                
+                if (normalizedInput.includes('ide') || normalizedInput.includes('brainstorm') || normalizedInput.includes('creative')) {
+                    return {
+                        text: "✨ Gemini Creative Mode:\n\nMenghasilkan ide-ide baru dari berbagai perspektif:\n• Unconventional thinking\n• Cross-domain inspiration\n• Trend analysis\n• Innovation patterns\n\nApa project Anda?",
+                        mode: "Gemini"
+                    };
+                }
+                
+                if (normalizedInput.includes('riset') || normalizedInput.includes('research') || normalizedInput.includes('informasi')) {
+                    return {
+                        text: "🔍 Gemini Research Mode:\n\nMencari & menyintesis informasi dari multiple sources:\n• Comprehensive research\n• Current trends\n• Expert perspectives\n• Cited sources\n\nTopic apa yang ingin di-research?",
+                        mode: "Gemini"
+                    };
+                }
+                
+                return {
+                    text: "✨ Gemini Mode Aktif:\n\nSaya fokus pada:\n✓ Creative solutions\n✓ Multi-perspective analysis\n✓ Trend spotting\n✓ Innovation thinking\n✓ Comprehensive research\n\nBagikan pertanyaan Anda!",
+                    mode: "Gemini"
+                };
+            }
+        };
+
+        // ===== FUNCTIONS =====
+        
+        function switchMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.ai-mode').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const subtitles = {
+                hybrid: '🔄 Powered by ChatGPT & Gemini Technology',
+                chatgpt: '🧠 Powered by ChatGPT - Deep Reasoning',
+                gemini: '✨ Powered by Google Gemini - Creative Thinking'
+            };
+            document.getElementById('modeSubtitle').textContent = subtitles[mode];
+        }
+
+        function addToHistory(role, content) {
+            conversationHistory.push({ role, content, timestamp: new Date() });
+            if (conversationHistory.length > MAX_HISTORY) {
+                conversationHistory.shift();
+            }
+        }
+
+        function getContextFromHistory() {
+            return conversationHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n');
+        }
+
+        function generateResponse(userInput) {
+            addToHistory('user', userInput);
+            
+            const response = aiResponses[currentMode](userInput);
+            addToHistory('assistant', response.text);
+            
+            return response;
+        }
+
+        function sanitizeInput(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        function addMessage(text, isUser, mode = null) {
+            const chat = document.getElementById("chat");
+            const wrapper = document.createElement('div');
+            wrapper.className = 'message-wrapper';
+            
+            const message = document.createElement('div');
+            message.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            if (!isUser && mode) {
+                message.classList.add(mode.toLowerCase());
+            }
+            
+            if (!isUser && mode) {
+                const header = document.createElement('div');
+                header.className = 'bot-header';
+                header.textContent = `${currentMode === 'hybrid' ? '🔄' : currentMode === 'chatgpt' ? '🧠' : '✨'} ${mode} Mode`;
+                message.appendChild(header);
+            }
+            
+            message.textContent = sanitizeInput(text);
+            if (!isUser && mode) {
+                message.textContent = '';
+                const header = document.createElement('div');
+                header.className = 'bot-header';
+                header.textContent = `${mode} Mode`;
+                message.appendChild(header);
+                const content = document.createElement('div');
+                content.textContent = sanitizeInput(text);
+                message.appendChild(content);
+            }
+            
+            wrapper.appendChild(message);
+            chat.appendChild(wrapper);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const chat = document.getElementById("chat");
+            const wrapper = document.createElement('div');
+            wrapper.className = 'message-wrapper';
+            wrapper.id = 'typing-indicator';
+            wrapper.innerHTML = `
+                <div class="typing-indicator">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            `;
+            chat.appendChild(wrapper);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) indicator.remove();
+        }
+
+        function send() {
+            const input = document.getElementById("text");
+            const sendBtn = document.querySelector(".send-btn");
+            
+            if (!input.value.trim()) return;
+            
+            const userMessage = input.value;
+            addMessage(userMessage, true);
+            
+            input.value = "";
+            input.disabled = true;
+            sendBtn.disabled = true;
+            
+            showTypingIndicator();
+            
+            setTimeout(() => {
+                removeTypingIndicator();
+                const response = generateResponse(userMessage);
+                addMessage(response.text, false, response.mode);
+                
+                input.disabled = false;
+                sendBtn.disabled = false;
+                input.focus();
+            }, 1000 + Math.random() * 500);
+        }
+
+        function clearChat() {
+            if (confirm('Clear all conversations?')) {
+                document.getElementById('chat').innerHTML = `
+                    <div class="message-wrapper">
+                        <div class="message bot-message" style="margin-right: auto;">
+                            Chat history cleared. Ready for new conversation! 🚀
+                        </div>
+                    </div>
+                `;
+                conversationHistory = [];
+            }
+        }
+
+        function showImageModal() {
+            document.getElementById('imageModal').classList.add('active');
+        }
+
+        function closeImageModal() {
+            document.getElementById('imageModal').classList.remove('active');
+        }
+
+        function analyzeImage() {
+            const imageUrl = document.getElementById('imageUrl').value;
+            if (imageUrl) {
+                addMessage(`🖼️ Analyzing image: ${imageUrl}`, true);
+                closeImageModal();
+                
+                showTypingIndicator();
+                setTimeout(() => {
+                    removeTypingIndicator();
+                    addMessage("🔍 Image Analysis:\n\nDescriptive analysis meliputi:\n• Objects & composition\n• Color palette\n• Text recognition\n• Scene description\n• Suggested captions\n\n(Simulated AI vision analysis)", false, 'Gemini');
+                }, 1000);
+            }
+        }
+
+        function showCodeModal() {
+            document.getElementById('codeModal').classList.add('active');
+        }
+
+        function closeCodeModal() {
+            document.getElementById('codeModal').classList.remove('active');
+        }
+
+        function insertCode() {
+            const code = document.getElementById('codeInput').value;
+            const language = document.getElementById('codeLanguage').value;
+            
+            if (code) {
+                addMessage(`📝 Code Review Request (${language}):`, true);
+                closeCodeModal();
+                
+                showTypingIndicator();
+                setTimeout(() => {
+                    removeTypingIndicator();
+                    addMessage(`Code Analysis (${language}):\n\n✓ Syntax check passed\n✓ Logic review: Good structure\n✓ Performance: Acceptable\n✓ Improvements suggested:\n  - Add error handling\n  - Consider edge cases\n  - Documentation needed\n\n(Simulated code analysis)`, false, 'ChatGPT');
+                }, 1000);
+            }
+        }
+
+        // ===== EVENT LISTENERS =====
+        
+        document.getElementById('text').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                send();
+            }
+        });
+
+        document.getElementById('text').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+        });
+
+        window.addEventListener('load', () => {
+            document.getElementById('text').focus();
+        });
+
+        // Close modals on outside click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
