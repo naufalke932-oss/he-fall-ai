@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Naufal ChatBot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            height: 600px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chatbot-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header-content h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header-content p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .chat-box {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #f7f7f7;
+        }
+
+        .chat-box::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-box::-webkit-scrollbar-track {
+            background: #e0e0e0;
+            border-radius: 10px;
+        }
+
+        .chat-box::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .chat-box::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+
+        .user, .bot {
+            padding: 12px 15px;
+            border-radius: 10px;
+            max-width: 85%;
+            word-wrap: break-word;
+            font-size: 14px;
+            line-height: 1.4;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .user {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 0;
+            text-align: right;
+        }
+
+        .bot {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 0;
+            margin-right: auto;
+            white-space: pre-wrap;
+        }
+
+        .welcome-message {
+            color: #667eea;
+            font-style: italic;
+            background: #f0f0f0;
+            border: none;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .input-field {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            padding: 12px 20px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-field:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 12px 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .send-btn:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                height: 100vh;
+                max-width: 100%;
+                border-radius: 0;
+            }
+
+            .user, .bot {
+                max-width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="chatbot-header">
+            <div class="header-content">
+                <h1>🤖 Naufal ChatBot</h1>
+                <p>Asisten AI siap membantu Anda</p>
+            </div>
+        </div>
+
+        <div id="chat" class="chat-box">
+            <div class="bot welcome-message">
+Halo 👋 Selamat datang di Naufal Chat-Bot. Ketik "menu" untuk melihat fitur yang tersedia!</div>
+        </div>
+
+        <div class="input-area">
+            <input 
+                type="text" 
+                id="text" 
+                class="input-field" 
+                placeholder="Ketik pesan Anda di sini..."
+                autocomplete="off"
+            >
+            <button onclick="send()" class="send-btn">Kirim</button>
+        </div>
+    </div>
+
+    <script>
+        const database = [
+            {
+                q: ["halo", "hai", "assalamualaikum"],
+                a: "Halo 👋 Selamat datang di Naufal Chat-Bot."
+            },
+            {
+                q: ["siapa kamu"],
+                a: "Saya adalah Naufal Chat-Bot, asisten AI yang siap membantu Anda dengan berbagai kebutuhan."
+            },
+            {
+                q: ["menu"],
+                a: "📋 Menu tersedia:\n• AI - Tanya sesuatu kepada AI\n• Downloader - Download konten\n• Anime - Info tentang anime\n• Game - Info game\n• Group - Informasi grup\n• Owner - Info developer\n• Tools - Alat bantu"
+            },
+            {
+                q: ["creator", "owner", "pembuat", "siapa pembuat"],
+                a: "👨‍💻 Developer: Naufal AI\nGitHub: naufalke932-oss"
+            },
+            {
+                q: ["terima kasih", "makasih", "thanks"],
+                a: "Sama-sama 😊 Senang bisa membantu Anda!"
+            },
+            {
+                q: ["jam", "pukul", "waktu"],
+                a: () => "⏰ Sekarang pukul: " + new Date().toLocaleTimeString("id-ID")
+            },
+            {
+                q: ["tanggal", "hari"],
+                a: () => "📅 Hari ini: " + new Date().toLocaleDateString("id-ID", { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                })
+            },
+            {
+                q: ["halo naufal"],
+                a: "Halo juga! 👋 Ada yang bisa saya bantu?"
+            },
+            {
+                q: ["apa kabar", "kabar"],
+                a: "Alhamdulillah baik-baik saja 😊 Bagaimana dengan Anda? Ada yang bisa saya bantu?"
+            },
+            {
+                q: ["bantuan", "help"],
+                a: "📞 Butuh bantuan? Silakan tanyakan:\n• Ketik 'menu' untuk melihat fitur\n• Tanya tentang waktu atau tanggal\n• Atau tanya hal lainnya yang ingin Anda ketahui"
+            },
+            {
+                q: ["hello"],
+                a: "Hello! 👋 Selamat datang di Naufal ChatBot"
+            },
+            {
+                q: ["bye", "goodbye", "sampai jumpa"],
+                a: "Sampai jumpa! 👋 Terima kasih telah menggunakan Naufal ChatBot"
+            }
+        ];
+
+        function cariJawaban(pesan) {
+            pesan = pesan.toLowerCase().trim();
+
+            // Exact match first
+            for (let item of database) {
+                for (let kata of item.q) {
+                    if (pesan === kata) {
+                        return typeof item.a === "function" ? item.a() : item.a;
+                    }
+                }
+            }
+
+            // Partial match
+            for (let item of database) {
+                for (let kata of item.q) {
+                    if (pesan.includes(kata)) {
+                        return typeof item.a === "function" ? item.a() : item.a;
+                    }
+                }
+            }
+
+            return "❓ Maaf, saya belum mengetahui jawaban tersebut. Silakan tambahkan ke database AI atau coba tanyakan hal lain. Ketik 'menu' untuk bantuan!";
+        }
+
+        function send() {
+            const input = document.getElementById("text");
+            const chat = document.getElementById("chat");
+
+            if (input.value.trim() === "") return;
+
+            const pesan = input.value;
+
+            // Display user message
+            chat.innerHTML += `<div class="user">${escapeHtml(pesan)}</div>`;
+
+            // Get bot response
+            const jawaban = cariJawaban(pesan);
+
+            // Display bot response with delay
+            setTimeout(() => {
+                chat.innerHTML += `<div class="bot">${escapeHtml(jawaban)}</div>`;
+                chat.scrollTop = chat.scrollHeight;
+            }, 500);
+
+            input.value = "";
+            input.focus();
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // Enter key listener
+        document.getElementById("text").addEventListener("keypress", function (e) {
+            if (e.key === "Enter") {
+                send();
+            }
+        });
+
+        // Auto focus input
+        window.addEventListener("load", () => {
+            document.getElementById("text").focus();
+        });
+    </script>
+</body>
+</html>
