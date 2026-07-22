@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Naufal ChatBot - Professional</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            height: 600px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chatbot-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header-content h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header-content p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .chat-box {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #f7f7f7;
+        }
+
+        .chat-box::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-box::-webkit-scrollbar-track {
+            background: #e0e0e0;
+            border-radius: 10px;
+        }
+
+        .chat-box::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .chat-box::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+
+        .message {
+            padding: 12px 15px;
+            border-radius: 10px;
+            max-width: 85%;
+            word-wrap: break-word;
+            font-size: 14px;
+            line-height: 1.4;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 0;
+            text-align: right;
+        }
+
+        .bot-message {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 0;
+            margin-right: auto;
+            white-space: pre-wrap;
+        }
+
+        .bot-message.error {
+            background: #ffe6e6;
+            border-color: #ff6b6b;
+            color: #c92a2a;
+        }
+
+        .bot-message.info {
+            background: #e7f5ff;
+            border-color: #74c0fc;
+            color: #1971c2;
+        }
+
+        .welcome-message {
+            color: #667eea;
+            font-style: italic;
+            background: #f0f0f0;
+            border: none;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .input-field {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            padding: 12px 20px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-field:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        .input-field:disabled {
+            background: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 12px 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .send-btn:active {
+            transform: translateY(0);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            padding: 12px 15px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #667eea;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                opacity: 0.5;
+                transform: translateY(0);
+            }
+            30% {
+                opacity: 1;
+                transform: translateY(-10px);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                height: 100vh;
+                max-width: 100%;
+                border-radius: 0;
+            }
+
+            .message {
+                max-width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="chatbot-header">
+            <div class="header-content">
+                <h1>🤖 Naufal ChatBot</h1>
+                <p>Asisten AI Profesional</p>
+            </div>
+        </div>
+
+        <div id="chat" class="chat-box">
+            <div class="message bot-message welcome-message">
+Halo 👋 Selamat datang di Naufal ChatBot. Ketik "menu" untuk melihat fitur yang tersedia!</div>
+        </div>
+
+        <div class="input-area">
+            <input 
+                type="text" 
+                id="text" 
+                class="input-field" 
+                placeholder="Ketik pesan Anda di sini..."
+                autocomplete="off"
+            >
+            <button onclick="send()" class="send-btn">Kirim</button>
+        </div>
+    </div>
+
+    <script>
+        // ===== KONFIGURASI DATABASE =====
+        const database = [
+            {
+                keywords: ["halo", "hai", "assalamualaikum", "hello", "hey"],
+                response: "Halo 👋 Selamat datang di Naufal Chat-Bot.",
+                type: "greeting"
+            },
+            {
+                keywords: ["siapa kamu", "siapa anda", "nama kamu"],
+                response: "Saya adalah Naufal Chat-Bot, asisten AI yang siap membantu Anda dengan berbagai kebutuhan.",
+                type: "info"
+            },
+            {
+                keywords: ["menu"],
+                response: "📋 Menu tersedia:\n• AI - Tanya sesuatu kepada AI\n• Downloader - Download konten\n• Anime - Info tentang anime\n• Game - Info game\n• Group - Informasi grup\n• Owner - Info developer\n• Tools - Alat bantu",
+                type: "menu"
+            },
+            {
+                keywords: ["creator", "owner", "pembuat", "siapa pembuat", "developer"],
+                response: "👨‍💻 Developer: Naufal AI\nGitHub: naufalke932-oss",
+                type: "info"
+            },
+            {
+                keywords: ["terima kasih", "makasih", "thanks", "thx"],
+                response: "Sama-sama 😊 Senang bisa membantu Anda!",
+                type: "social"
+            },
+            {
+                keywords: ["jam", "pukul", "waktu", "sekarang jam berapa"],
+                response: null,
+                type: "dynamic",
+                handler: () => "⏰ Sekarang pukul: " + new Date().toLocaleTimeString("id-ID")
+            },
+            {
+                keywords: ["tanggal", "hari", "berapa tanggal"],
+                response: null,
+                type: "dynamic",
+                handler: () => "📅 Hari ini: " + new Date().toLocaleDateString("id-ID", {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                })
+            },
+            {
+                keywords: ["apa kabar", "kabar", "gimana kabar"],
+                response: "Alhamdulillah baik-baik saja 😊 Bagaimana dengan Anda? Ada yang bisa saya bantu?",
+                type: "social"
+            },
+            {
+                keywords: ["bantuan", "help", "tolong", "bisa apa"],
+                response: "📞 Butuh bantuan? Silakan tanyakan:\n• Ketik 'menu' untuk melihat fitur\n• Tanya tentang waktu atau tanggal\n• Atau tanya hal lainnya yang ingin Anda ketahui",
+                type: "help"
+            },
+            {
+                keywords: ["bye", "goodbye", "sampai jumpa", "dadah"],
+                response: "Sampai jumpa! 👋 Terima kasih telah menggunakan Naufal ChatBot",
+                type: "farewell"
+            }
+        ];
+
+        // ===== UTILITY FUNCTIONS =====
+        
+        /**
+         * Sanitasi input untuk mencegah XSS
+         */
+        function sanitizeInput(text) {
+            try {
+                if (typeof text !== 'string') {
+                    throw new Error('Input harus berupa string');
+                }
+                
+                const map = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                };
+                
+                return text.replace(/[&<>"']/g, m => map[m]).trim();
+            } catch (err) {
+                console.error('Error sanitizeInput:', err);
+                return '';
+            }
+        }
+
+        /**
+         * Normalisasi teks untuk matching
+         */
+        function normalizeText(text) {
+            try {
+                if (typeof text !== 'string') {
+                    return '';
+                }
+                
+                return text
+                    .toLowerCase()
+                    .trim()
+                    .replace(/[^\w\s]/g, '')
+                    .replace(/\s+/g, ' ');
+            } catch (err) {
+                console.error('Error normalizeText:', err);
+                return '';
+            }
+        }
+
+        /**
+         * Hitung Levenshtein distance untuk fuzzy matching
+         */
+        function getLevenshteinDistance(a, b) {
+            try {
+                const matrix = [];
+
+                for (let i = 0; i <= b.length; i++) {
+                    matrix[i] = [i];
+                }
+
+                for (let j = 0; j <= a.length; j++) {
+                    matrix[0][j] = j;
+                }
+
+                for (let i = 1; i <= b.length; i++) {
+                    for (let j = 1; j <= a.length; j++) {
+                        if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                            matrix[i][j] = matrix[i - 1][j - 1];
+                        } else {
+                            matrix[i][j] = Math.min(
+                                matrix[i - 1][j - 1] + 1,
+                                matrix[i][j - 1] + 1,
+                                matrix[i - 1][j] + 1
+                            );
+                        }
+                    }
+                }
+
+                return matrix[b.length][a.length];
+            } catch (err) {
+                console.error('Error getLevenshteinDistance:', err);
+                return 999;
+            }
+        }
+
+        /**
+         * Cari keyword terbaik dengan fuzzy matching
+         */
+        function findBestMatch(userInput) {
+            try {
+                const normalized = normalizeText(userInput);
+                
+                if (!normalized || normalized.length === 0) {
+                    return null;
+                }
+
+                let bestMatch = null;
+                let bestScore = 999;
+
+                for (const item of database) {
+                    for (const keyword of item.keywords) {
+                        const normalizedKeyword = normalizeText(keyword);
+                        
+                        // Exact match
+                        if (normalized === normalizedKeyword) {
+                            return item;
+                        }
+
+                        // Partial match
+                        if (normalized.includes(normalizedKeyword) || normalizedKeyword.includes(normalized)) {
+                            return item;
+                        }
+
+                        // Fuzzy match
+                        const distance = getLevenshteinDistance(normalized, normalizedKeyword);
+                        const threshold = Math.ceil(normalizedKeyword.length * 0.3);
+
+                        if (distance <= threshold && distance < bestScore) {
+                            bestMatch = item;
+                            bestScore = distance;
+                        }
+                    }
+                }
+
+                return bestMatch;
+            } catch (err) {
+                console.error('Error findBestMatch:', err);
+                return null;
+            }
+        }
+
+        /**
+         * Dapatkan respons dari database
+         */
+        function getResponse(userInput) {
+            try {
+                if (!userInput || userInput.trim().length === 0) {
+                    return {
+                        text: "❓ Silakan ketik sesuatu terlebih dahulu.",
+                        type: "info"
+                    };
+                }
+
+                const match = findBestMatch(userInput);
+
+                if (!match) {
+                    return {
+                        text: "❓ Maaf, saya belum mengetahui jawaban tersebut. Coba ketik 'menu' untuk bantuan!",
+                        type: "info"
+                    };
+                }
+
+                let response = match.response;
+
+                // Handle dynamic responses
+                if (match.type === 'dynamic' && typeof match.handler === 'function') {
+                    try {
+                        response = match.handler();
+                    } catch (err) {
+                        console.error('Error executing handler:', err);
+                        response = "⚠️ Ada kesalahan saat memproses respons.";
+                    }
+                }
+
+                return {
+                    text: response || "Respons tidak tersedia",
+                    type: match.type
+                };
+            } catch (err) {
+                console.error('Error getResponse:', err);
+                return {
+                    text: "⚠️ Terjadi kesalahan: " + err.message,
+                    type: "error"
+                };
+            }
+        }
+
+        /**
+         * Tampilkan loading indicator
+         */
+        function showTypingIndicator() {
+            try {
+                const chat = document.getElementById("chat");
+                const indicator = document.createElement('div');
+                indicator.id = 'typing-indicator';
+                indicator.className = 'message bot-message typing-indicator';
+                indicator.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+                chat.appendChild(indicator);
+                chat.scrollTop = chat.scrollHeight;
+                return indicator;
+            } catch (err) {
+                console.error('Error showTypingIndicator:', err);
+                return null;
+            }
+        }
+
+        /**
+         * Hapus loading indicator
+         */
+        function removeTypingIndicator() {
+            try {
+                const indicator = document.getElementById('typing-indicator');
+                if (indicator) {
+                    indicator.remove();
+                }
+            } catch (err) {
+                console.error('Error removeTypingIndicator:', err);
+            }
+        }
+
+        /**
+         * Tambah pesan ke chat
+         */
+        function addMessage(text, isUser) {
+            try {
+                const chat = document.getElementById("chat");
+                const message = document.createElement('div');
+                message.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+                message.textContent = sanitizeInput(text);
+                chat.appendChild(message);
+                chat.scrollTop = chat.scrollHeight;
+            } catch (err) {
+                console.error('Error addMessage:', err);
+            }
+        }
+
+        /**
+         * Fungsi utama untuk mengirim pesan
+         */
+        function send() {
+            try {
+                const input = document.getElementById("text");
+                const sendBtn = document.querySelector(".send-btn");
+
+                if (!input || !input.value || input.value.trim().length === 0) {
+                    return;
+                }
+
+                const userMessage = input.value;
+                
+                // Validasi panjang pesan
+                if (userMessage.length > 500) {
+                    alert('⚠️ Pesan terlalu panjang (maksimal 500 karakter)');
+                    return;
+                }
+
+                // Disable input saat processing
+                input.disabled = true;
+                sendBtn.disabled = true;
+
+                // Tampilkan pesan user
+                addMessage(userMessage, true);
+
+                // Tampilkan loading
+                const indicator = showTypingIndicator();
+
+                // Delay untuk efek natural
+                setTimeout(() => {
+                    try {
+                        removeTypingIndicator();
+
+                        // Dapatkan respons
+                        const response = getResponse(userMessage);
+
+                        // Tampilkan respons
+                        const botMessage = document.createElement('div');
+                        botMessage.className = `message bot-message ${response.type === 'error' ? 'error' : response.type === 'info' ? 'info' : ''}`;
+                        botMessage.textContent = sanitizeInput(response.text);
+                        
+                        const chat = document.getElementById("chat");
+                        chat.appendChild(botMessage);
+                        chat.scrollTop = chat.scrollHeight;
+
+                        // Clear input
+                        input.value = "";
+                        input.focus();
+
+                        // Enable input
+                        input.disabled = false;
+                        sendBtn.disabled = false;
+
+                    } catch (err) {
+                        console.error('Error dalam processing:', err);
+                        removeTypingIndicator();
+                        addMessage("⚠️ Terjadi kesalahan saat memproses respons.", false);
+                        input.disabled = false;
+                        sendBtn.disabled = false;
+                    }
+                }, 500);
+
+            } catch (err) {
+                console.error('Error send:', err);
+                const input = document.getElementById("text");
+                const sendBtn = document.querySelector(".send-btn");
+                input.disabled = false;
+                sendBtn.disabled = false;
+                alert('❌ Terjadi kesalahan: ' + err.message);
+            }
+        }
+
+        // ===== EVENT LISTENERS =====
+        
+        // Enter key to send
+        document.getElementById("text").addEventListener("keypress", function (e) {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                send();
+            }
+        });
+
+        // Auto focus on load
+        window.addEventListener("load", () => {
+            try {
+                const input = document.getElementById("text");
+                if (input) {
+                    input.focus();
+                }
+            } catch (err) {
+                console.error('Error on load:', err);
+            }
+        });
+
+        // Handle errors globally
+        window.addEventListener('error', (event) => {
+            console.error('Global error:', event.error);
+        });
+    </script>
+</body>
+</html>
